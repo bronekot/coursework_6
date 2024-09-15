@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список рассылок</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Список рассылок</h1>
+        <a href="{% url 'mailing_create' %}" class="btn btn-primary mb-3">Добавить рассылку</a>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Дата и время начала</th>
+                    <th>Периодичность</th>
+                    <th>Статус</th>
+                    <th>Сообщение</th>
+                    <th>Клиенты</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mailing in mailings %}
+                <tr>
+                    <td>{{ mailing.start_datetime }}</td>
+                    <td>{{ mailing.periodicity }}</td>
+                    <td>{{ mailing.status }}</td>
+                    <td>{{ mailing.message.subject }}</td>
+                    <td>
+                        {% for client in mailing.clients.all %}
+                        {{ client.email }}<br>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

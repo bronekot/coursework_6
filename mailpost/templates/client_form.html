@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма клиента</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Форма клиента</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ form.email.value }}">
+            </div>
+            <div class="form-group">
+                <label for="full_name">Ф. И. О.</label>
+                <input type="text" class="form-control" id="full_name" name="full_name"
+                    value="{{ form.full_name.value }}">
+            </div>
+            <div class="form-group">
+                <label for="comment">Комментарий</label>
+                <textarea class="form-control" id="comment" name="comment">{{ form.comment.value }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+    </div>
+</body>
+
+</html>
