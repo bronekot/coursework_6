@@ -10,6 +10,13 @@ python = "^3.12"
 django = "^5.1.1"
 django-apscheduler = "^0.6.2"
 python-dotenv = "^1.0.1"
+psycopg2-binary = "^2.9.9"
+pillow = "^10.4.0"
+ipython = "^8.27.0"
+django-stubs = "^5.0.4"
+django-filter = "^24.3"
+coverage = "^7.6.1"
+pylint-django = "^2.5.5"
 
 
 [build-system]

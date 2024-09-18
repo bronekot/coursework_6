@@ -1,5 +1,13 @@
+import uuid
+
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+
+def generate_verification_token():
+    return str(uuid.uuid4())
 
 
 class Client(models.Model):
@@ -42,3 +50,17 @@ class MailingAttempt(models.Model):
 
     def __str__(self):
         return f"Попытка рассылки {self.mailing.id} - {self.status} - {self.attempt_datetime}"
+
+
+class CustomUser(AbstractUser):
+    email = models.EmailField(_("email address"), unique=True)
+    is_verified = models.BooleanField(default=False)
+    verification_token = models.CharField(
+        max_length=100, blank=True, default=generate_verification_token
+    )
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+
+    def __str__(self):
+        return self.email
