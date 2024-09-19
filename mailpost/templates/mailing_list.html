@@ -1,34 +1,37 @@
 {% extends 'base.html' %}
-
 {% block title %}Список рассылок{% endblock %}
-
 {% block content %}
-<h1 class="mb-4">Список рассылок</h1>
-<a href="{% url 'mailing_create' %}" class="btn btn-primary mb-3">Добавить рассылку</a>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Дата и время начала</th>
-            <th>Периодичность</th>
-            <th>Статус</th>
-            <th>Сообщение</th>
-            <th>Клиенты</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for mailing in mailings %}
-        <tr>
-            <td>{{ mailing.start_datetime }}</td>
-            <td>{{ mailing.periodicity }}</td>
-            <td>{{ mailing.status }}</td>
-            <td>{{ mailing.message.subject }}</td>
-            <td>
-                {% for client in mailing.clients.all %}
-                {{ client.email }}<br>
-                {% endfor %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <h1 class="mb-4">Список рассылок</h1>
+    <a href="{% url 'mailing_create' %}" class="btn btn-primary mb-3">Добавить рассылку</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Дата и время начала</th>
+                <th>Периодичность</th>
+                <th>Статус</th>
+                <th>Сообщение</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mailing in mailings %}
+                <tr>
+                    <td>{{ mailing.start_datetime }}</td>
+                    <td>{{ mailing.periodicity }}</td>
+                    <td>{{ mailing.status }}</td>
+                    <td>{{ mailing.message.subject }}</td>
+                    <td>
+                        <form action="{% url 'mailing_close' mailing.pk %}"
+                              method="post"
+                              style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-danger"
+                                    {% if mailing.status == 'closed' %}disabled{% endif %}>Закрыть</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

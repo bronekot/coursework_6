@@ -6,10 +6,24 @@ from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.vary import vary_on_cookie
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    RedirectView,
+    UpdateView,
+    View,
+)
 
 from .decorators import verified_email_required
 from .forms import (
@@ -20,15 +34,16 @@ from .forms import (
     MessageForm,
 )
 from .models import Client, Mailing, Message
+from .permissions import IsManagerMixin, IsOwnerOrManagerMixin, VerifiedEmailRequiredMixin
 
-logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 def home(request):
     return render(request, "home.html")
 
 
-User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -47,18 +62,23 @@ def register(request):
                 logger.info(f"Attempting to send verification email to {user.email}")
                 if send_verification_email(user):
                     logger.info(f"Verification email sent successfully to {user.email}")
-                    messages.success(request, "Please check your email to verify your account.")
+                    messages.success(
+                        request,
+                        "Пожалуйста, проверьте электронную почту, чтобы подтвердить аккаунт.",
+                    )
                 else:
                     logger.warning(f"Failed to send verification email to {user.email}")
                     messages.warning(
                         request,
-                        "Account created, but we couldn't send a verification email. Please contact support.",
+                        "Аккаунт создан, но мы не смогли отправить письмо с подтверждением. Пожалуйста, не связывайтесь с поддержкой.",
                     )
 
                 return redirect("login")
             except Exception as e:
                 logger.error(f"Error during registration: {str(e)}", exc_info=True)
-                messages.error(request, "An error occurred during registration. Please try again.")
+                messages.error(
+                    request, "Во время регистрации произошла ошибка. Пожалуйста, попробуйте снова."
+                )
         else:
             logger.warning("Form is invalid")
             logger.warning(f"Form errors: {form.errors}")
@@ -78,15 +98,19 @@ def verify_email(request):
                 user.is_verified = True
                 user.verification_token = ""
                 user.save()
-                messages.success(request, "Your email has been verified. You can now log in.")
+                messages.success(
+                    request, "Ваш email подтвержден. Теперь вы можете авторизоваться."
+                )
                 return redirect("login")
             except User.DoesNotExist:
-                form.add_error(None, "Invalid or expired verification token")
+                form.add_error(None, "Неверный или просроченный токен подтверждения")
     else:
         form = EmailVerificationForm()
     return render(request, "registration/verify_email.html", {"form": form})
 
 
+@never_cache
+@vary_on_cookie
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -97,6 +121,10 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 return redirect("home")
+            else:
+                messages.error(request, "Неверное имя пользователя или пароль.")
+        else:
+            messages.error(request, "Неверное имя пользователя или пароль.")
     else:
         form = AuthenticationForm()
     return render(request, "registration/login.html", {"form": form})
@@ -107,8 +135,8 @@ logger = logging.getLogger(__name__)
 
 def send_verification_email(user):
     logger.info(f"Sending verification email to {user.email}")
-    subject = "Verify your email"
-    message = f"Your verification token is: {user.verification_token}"
+    subject = "Подтвердите свой email"
+    message = f"Ваш токен подтверждения: {user.verification_token}"
     from_email = settings.EMAIL_HOST_USER
     recipient_list = [user.email]
 
@@ -123,10 +151,10 @@ def send_verification_email(user):
 
 
 def send_test_email(request):
-    subject = "Test email from Django"
-    message = "This is a test email sent from your Django application."
+    subject = "Тестовое письмо из Django"
+    message = "Это тестовое письмо, отправленное из приложения Django."
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = ["demondzr@yandex.ru"]  # Замените на ваш email для тестирования
+    recipient_list = ["test@example.com"]  # Замените на ваш email для тестирования
 
     try:
         send_mail(subject, message, from_email, recipient_list)
@@ -178,12 +206,6 @@ def message_create(request):
 
 
 @login_required
-def mailing_list(request):
-    mailings = Mailing.objects.filter(owner=request.user)
-    return render(request, "mailing_list.html", {"mailings": mailings})
-
-
-@login_required
 def resend_verification(request):
     if not request.user.is_verified:
         if send_verification_email(request.user):
@@ -198,50 +220,6 @@ def resend_verification(request):
     else:
         messages.info(request, "Ваш email уже подтвержден.")
     return redirect("home")
-
-
-@login_required
-@verified_email_required
-def mailing_create(request):
-    if request.method == "POST":
-        form = MailingForm(request.POST)
-        if form.is_valid():
-            mailing = form.save(commit=False)
-            mailing.owner = request.user
-            mailing.save()
-            form.save_m2m()  # Сохраняем связи many-to-many
-            return redirect("mailing_list")
-    else:
-        form = MailingForm()
-    return render(request, "mailing_form.html", {"form": form})
-
-
-@login_required
-def mailing_detail(request, pk):
-    mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
-    return render(request, "mailing_detail.html", {"mailing": mailing})
-
-
-@login_required
-def mailing_update(request, pk):
-    mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
-    if request.method == "POST":
-        form = MailingForm(request.POST, instance=mailing)
-        if form.is_valid():
-            form.save()
-            return redirect("mailing_list")
-    else:
-        form = MailingForm(instance=mailing)
-    return render(request, "mailing_form.html", {"form": form})
-
-
-@login_required
-def mailing_delete(request, pk):
-    mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
-    if request.method == "POST":
-        mailing.delete()
-        return redirect("mailing_list")
-    return render(request, "mailing_confirm_delete.html", {"mailing": mailing})
 
 
 def is_manager(user):
@@ -260,14 +238,14 @@ def manager_user_list(request):
     return render(request, "manager/user_list.html", {"users": users})
 
 
-@user_passes_test(is_manager)
-def manager_toggle_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user.is_active = not user.is_active
-    user.save()
-    action = "activated" if user.is_active else "deactivated"
-    messages.success(request, f"User {user.username} has been {action}.")
-    return redirect("manager_user_list")
+# @user_passes_test(is_manager)
+# def manager_toggle_user(request, user_id):
+#     user = get_object_or_404(User, id=user_id)
+#     user.is_active = not user.is_active
+#     user.save()
+#     action = "activated" if user.is_active else "deactivated"
+#     messages.success(request, f"User {user.username} has been {action}.")
+#     return redirect("manager_user_list")
 
 
 @user_passes_test(is_manager)
@@ -279,7 +257,169 @@ def manager_toggle_mailing(request, mailing_id):
     return redirect("manager_mailing_list")
 
 
+@never_cache
 @require_http_methods(["GET", "POST"])
 def logout_view(request):
     auth_logout(request)
     return redirect("home")
+
+
+class MailingListView(LoginRequiredMixin, ListView):
+    model = Mailing
+    template_name = "mailing_list.html"
+    context_object_name = "mailings"
+
+    def get_queryset(self):
+        if self.request.user.groups.filter(name="Managers").exists():
+            return Mailing.objects.all()
+        return Mailing.objects.filter(owner=self.request.user)
+
+
+class MailingDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Mailing
+    template_name = "mailing_detail.html"
+
+    def test_func(self):
+        mailing = self.get_object()
+        user = self.request.user
+        return (
+            user.is_authenticated
+            and user.is_verified
+            and (user == mailing.owner or user.groups.filter(name="Managers").exists())
+        )
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            raise PermissionDenied("У вас нет разрешения на просмотр этой рассылки")
+        return super().handle_no_permission()
+
+
+class MailingCreateView(LoginRequiredMixin, VerifiedEmailRequiredMixin, CreateView):
+    model = Mailing
+    form_class = MailingForm
+    template_name = "mailing_form.html"
+    success_url = reverse_lazy("mailing_list")
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class MailingCloseView(LoginRequiredMixin, RedirectView):
+    def post(self, request, pk):
+        mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
+        mailing.status = "closed"
+        mailing.save()
+        messages.success(request, "Рассылка закрыта успешно.")
+        return redirect("mailing_list")
+
+
+class MailingUpdateView(LoginRequiredMixin, IsOwnerOrManagerMixin, UpdateView):
+    model = Mailing
+    form_class = MailingForm
+    template_name = "mailing_form.html"
+    success_url = reverse_lazy("mailing_list")
+
+
+class MailingDeleteView(LoginRequiredMixin, IsOwnerOrManagerMixin, DeleteView):
+    model = Mailing
+    template_name = "mailing_confirm_delete.html"
+    success_url = reverse_lazy("mailing_list")
+
+
+class ManagerUserListView(IsManagerMixin, ListView):
+    model = User
+    template_name = "manager/user_list.html"
+    context_object_name = "users"
+
+
+class ManagerToggleUserView(IsManagerMixin, View):
+    def post(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        user.is_active = not user.is_active
+        user.save()
+        action = "activated" if user.is_active else "deactivated"
+        messages.success(request, f"User {user.username} has been {action}.")
+        return redirect("manager_user_list")
+
+
+class ManagerToggleMailingView(IsManagerMixin, UpdateView):
+    model = Mailing
+    fields = ["status"]
+    template_name = "manager/toggle_mailing.html"
+    success_url = reverse_lazy("mailing_list")
+
+    def form_valid(self, form):
+        mailing = form.save()
+        messages.success(self.request, f"Mailing status has been changed to {mailing.status}.")
+        return super().form_valid(form)
+
+    success_url = reverse_lazy("mailing_list")
+
+
+class ClientListView(LoginRequiredMixin, ListView):
+    model = Client
+    template_name = "client_list.html"
+    context_object_name = "clients"
+
+    def get_queryset(self):
+        return Client.objects.filter(owner=self.request.user)
+
+
+class ClientCreateView(LoginRequiredMixin, VerifiedEmailRequiredMixin, CreateView):
+    model = Client
+    form_class = ClientForm
+    template_name = "client_form.html"
+    success_url = reverse_lazy("client_list")
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class MessageListView(LoginRequiredMixin, ListView):
+    model = Message
+    template_name = "message_list.html"
+    context_object_name = "messages"
+
+    def get_queryset(self):
+        return Message.objects.filter(owner=self.request.user)
+
+
+class MessageCreateView(LoginRequiredMixin, VerifiedEmailRequiredMixin, CreateView):
+    model = Message
+    form_class = MessageForm
+    template_name = "message_form.html"
+    success_url = reverse_lazy("message_list")
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)

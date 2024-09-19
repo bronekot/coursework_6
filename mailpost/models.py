@@ -2,13 +2,16 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.cache import cache
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
 def generate_verification_token():
-    return str(uuid.uuid4())
+    return uuid.uuid4().hex[:8]
 
 
 class Client(models.Model):
@@ -33,6 +36,7 @@ class Mailing(models.Model):
         ("created", "Создано"),
         ("started", "Запущено"),
         ("completed", "Выполнено"),
+        ("closed", "Закрыто"),
     ]
     start_datetime = models.DateTimeField()
     periodicity = models.CharField(

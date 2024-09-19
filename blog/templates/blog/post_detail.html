@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+    <article>
+        <h1>{{ post.title }}</h1>
+        {% if post.image %}<img src="{{ post.image.url }}" alt="{{ post.title }}">{% endif %}
+        <p>{{ post.content }}</p>
+        <p>Просмотры: {{ post.views }} | Опубликовано: {{ post.published_at|date:"d.m.Y H:i" }}</p>
+    </article>
+{% endblock %}

@@ -1,6 +1,7 @@
-from django.shortcuts import redirect
-from django.contrib import messages
 from functools import wraps
+
+from django.contrib import messages
+from django.shortcuts import redirect
 
 
 def verified_email_required(view_func):
@@ -17,4 +18,5 @@ def verified_email_required(view_func):
                 return redirect("home")  # или другая подходящая страница
         return redirect("login")
 
+    return _wrapped_view
     return _wrapped_view
