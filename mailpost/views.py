@@ -256,13 +256,13 @@ def manager_mailing_list(request):
 
 @user_passes_test(is_manager)
 def manager_user_list(request):
-    users = CustomUser.objects.all()
+    users = User.objects.all()
     return render(request, "manager/user_list.html", {"users": users})
 
 
 @user_passes_test(is_manager)
 def manager_toggle_user(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
+    user = get_object_or_404(User, id=user_id)
     user.is_active = not user.is_active
     user.save()
     action = "activated" if user.is_active else "deactivated"
