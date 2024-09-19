@@ -3,6 +3,12 @@
 {% block content %}
     <div class="jumbotron">
         <h1 class="display-4">Добро пожаловать в Сервис рассылок</h1>
+        {% if user.is_authenticated and not user.is_verified %}
+            <div class="alert alert-warning" role="alert">
+                Ваш email не подтвержден. Для создания клиентов и рассылок необходимо подтвердить email.
+                Пожалуйста, проверьте свою почту или <a href="{% url 'verify_email' %}">запросите новое письмо для подтверждения</a>.
+            </div>
+        {% endif %}
         <p class="lead">Эффективное управление email-рассылками для вашего бизнеса</p>
         <hr class="my-4">
         <p>Создавайте, планируйте и отслеживайте ваши email-кампании с легкостью.</p>

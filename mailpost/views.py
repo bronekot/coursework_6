@@ -1,15 +1,17 @@
-# mailpost/views.py
 import logging
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 
+from .decorators import verified_email_required
 from .forms import (
     ClientForm,
     CustomUserCreationForm,
@@ -140,6 +142,7 @@ def client_list(request):
 
 
 @login_required
+@verified_email_required
 def client_create(request):
     if request.method == "POST":
         form = ClientForm(request.POST)
@@ -160,6 +163,7 @@ def message_list(request):
 
 
 @login_required
+@verified_email_required
 def message_create(request):
     if request.method == "POST":
         form = MessageForm(request.POST)
@@ -180,6 +184,24 @@ def mailing_list(request):
 
 
 @login_required
+def resend_verification(request):
+    if not request.user.is_verified:
+        if send_verification_email(request.user):
+            messages.success(
+                request, "Письмо с подтверждением отправлено. Пожалуйста, проверьте вашу почту."
+            )
+        else:
+            messages.error(
+                request,
+                "Не удалось отправить письмо с подтверждением. Пожалуйста, попробуйте позже.",
+            )
+    else:
+        messages.info(request, "Ваш email уже подтвержден.")
+    return redirect("home")
+
+
+@login_required
+@verified_email_required
 def mailing_create(request):
     if request.method == "POST":
         form = MailingForm(request.POST)
@@ -222,6 +244,42 @@ def mailing_delete(request, pk):
     return render(request, "mailing_confirm_delete.html", {"mailing": mailing})
 
 
-# def logout_view(request):
-#     logout(request)
-#     return redirect("home")  # или куда вы хотите перенаправить после выхода
+def is_manager(user):
+    return user.groups.filter(name="Managers").exists()
+
+
+@user_passes_test(is_manager)
+def manager_mailing_list(request):
+    mailings = Mailing.objects.all()
+    return render(request, "manager/mailing_list.html", {"mailings": mailings})
+
+
+@user_passes_test(is_manager)
+def manager_user_list(request):
+    users = CustomUser.objects.all()
+    return render(request, "manager/user_list.html", {"users": users})
+
+
+@user_passes_test(is_manager)
+def manager_toggle_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    user.is_active = not user.is_active
+    user.save()
+    action = "activated" if user.is_active else "deactivated"
+    messages.success(request, f"User {user.username} has been {action}.")
+    return redirect("manager_user_list")
+
+
+@user_passes_test(is_manager)
+def manager_toggle_mailing(request, mailing_id):
+    mailing = get_object_or_404(Mailing, id=mailing_id)
+    mailing.status = "completed" if mailing.status != "completed" else "created"
+    mailing.save()
+    messages.success(request, f"Mailing status has been changed to {mailing.status}.")
+    return redirect("manager_mailing_list")
+
+
+@require_http_methods(["GET", "POST"])
+def logout_view(request):
+    auth_logout(request)
+    return redirect("home")

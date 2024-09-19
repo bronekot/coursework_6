@@ -18,6 +18,17 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("verify-email/", views.verify_email, name="verify_email"),
     path("send-test-email/", views.send_test_email, name="send_test_email"),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("resend-verification/", views.resend_verification, name="resend_verification"),
+    path("manager/mailings/", views.manager_mailing_list, name="manager_mailing_list"),
+    path("manager/users/", views.manager_user_list, name="manager_user_list"),
+    path(
+        "manager/toggle-user/<int:user_id>/", views.manager_toggle_user, name="manager_toggle_user"
+    ),
+    path(
+        "manager/toggle-mailing/<int:mailing_id>/",
+        views.manager_toggle_mailing,
+        name="manager_toggle_mailing",
+    ),
+    path("logout/", views.logout_view, name="logout"),
 ]
-

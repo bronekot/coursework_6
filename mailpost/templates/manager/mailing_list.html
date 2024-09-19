@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Manager Mailing List</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Start Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mailing in mailings %}
+                <tr>
+                    <td>{{ mailing.id }}</td>
+                    <td>{{ mailing.start_datetime }}</td>
+                    <td>{{ mailing.status }}</td>
+                    <td>
+                        <a href="{% url 'manager_toggle_mailing' mailing.id %}"
+                           class="btn btn-warning">
+                            {% if mailing.status == 'completed' %}
+                                Reactivate
+                            {% else %}
+                                Complete
+                            {% endif %}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

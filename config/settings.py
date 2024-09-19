@@ -109,9 +109,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "django.contrib.auth.middleware.AuthenticationMiddleware",
+    },
 ]
 
 AUTH_USER_MODEL = "mailpost.CustomUser"
+LOGOUT_REDIRECT_URL = "home"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_SECURE = True  # если используется HTTPS
+SESSION_COOKIE_HTTPONLY = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
