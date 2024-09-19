@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Блог</h1>
+    {% for post in posts %}
+        <article>
+            <h2>
+                <a href="{% url 'blog:post_detail' post.pk %}">{{ post.title }}</a>
+            </h2>
+            <p>{{ post.content|truncatewords:30 }}</p>
+            <p>Просмотры: {{ post.views }} | Опубликовано: {{ post.published_at|date:"d.m.Y" }}</p>
+        </article>
+    {% empty %}
+        <p>Нет доступных постов.</p>
+    {% endfor %}
+    {% include 'includes/pagination.html' with page_obj=page_obj %}
+{% endblock %}

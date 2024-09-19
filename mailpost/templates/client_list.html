@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Список клиентов{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Список клиентов</h1>
+<a href="{% url 'client_create' %}" class="btn btn-primary mb-3">Добавить клиента</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Ф. И. О.</th>
+            <th>Комментарий</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for client in clients %}
+        <tr>
+            <td>{{ client.email }}</td>
+            <td>{{ client.full_name }}</td>
+            <td>{{ client.comment }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

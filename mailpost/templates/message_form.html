@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Форма сообщения{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Форма сообщения</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="subject">Тема</label>
+        <input type="text" class="form-control" id="subject" name="subject" value="{{ form.subject.value }}">
+    </div>
+    <div class="form-group">
+        <label for="body">Тело</label>
+        <textarea class="form-control" id="body" name="body">{{ form.body.value }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

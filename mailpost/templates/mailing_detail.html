@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Детали рассылки</h1>
+    <p>ID: {{ object.id }}</p>
+    <p>Владелец: {{ object.owner }}</p>
+    <p>Статус: {{ object.get_status_display }}</p>
+    <p>Периодичность: {{ object.get_periodicity_display }}</p>
+    <p>Сообщение: {{ object.message.subject }}</p>
+    <p>Дата начала: {{ object.start_datetime }}</p>
+{% endblock %}
