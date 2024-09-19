@@ -1,18 +1,23 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path
-from .views import (
-    client_list,
-    client_create,
-    message_list,
-    message_create,
-    mailing_list,
-    mailing_create,
-)
+
+from . import views
 
 urlpatterns = [
-    path("clients/", client_list, name="client_list"),
-    path("clients/create/", client_create, name="client_create"),
-    path("messages/", message_list, name="message_list"),
-    path("messages/create/", message_create, name="message_create"),
-    path("mailings/", mailing_list, name="mailing_list"),
-    path("mailings/create/", mailing_create, name="mailing_create"),
+    path("", views.home, name="home"),
+    path("clients/", views.client_list, name="client_list"),
+    path("clients/create/", views.client_create, name="client_create"),
+    path("messages/", views.message_list, name="message_list"),
+    path("messages/create/", views.message_create, name="message_create"),
+    path("mailings/", views.mailing_list, name="mailing_list"),
+    path("mailings/create/", views.mailing_create, name="mailing_create"),
+    path("mailings/<int:pk>/", views.mailing_detail, name="mailing_detail"),
+    path("mailings/<int:pk>/update/", views.mailing_update, name="mailing_update"),
+    path("mailings/<int:pk>/delete/", views.mailing_delete, name="mailing_delete"),
+    path("register/", views.register, name="register"),
+    path("login/", views.login_view, name="login"),
+    path("verify-email/", views.verify_email, name="verify_email"),
+    path("send-test-email/", views.send_test_email, name="send_test_email"),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
+

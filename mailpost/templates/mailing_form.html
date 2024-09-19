@@ -1,57 +1,47 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форма рассылки</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
+{% block title %}Форма рассылки{% endblock %}
 
-<body>
-    <div class="container">
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="start_datetime">Дата и время начала</label>
-                <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime"
-                    value="{{ form.start_datetime.value }}">
-            </div>
-            <div class="form-group">
-                <label for="periodicity">Периодичность</label>
-                <select class="form-control" id="periodicity" name="periodicity">
-                    {% for choice in form.periodicity.field.choices %}
-                    <option value="{{ choice.0 }}" {% if choice.0 == form.periodicity.value %}selected{% endif %}>{{ choice.1 }}</option>
-                    {% endfor %} 
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="status">Статус</label>
-                <select class="form-control" id="status" name="status">
-                    {% for choice in form.status.field.choices %}
-                    <option value="{{ choice.0 }}" {% if choice.0 == form.status.value %}selected{% endif %}>{{ choice.1 }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="message">Сообщение</label>
-                <select class="form-control" id="message" name="message">
-                    {% for message in form.message.field.queryset %}
-                    <option value="{{ message.id }}" {% if message.id == form.message.value %}selected{% endif %}>{{ message.subject }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="clients">Клиенты</label>
-                <select multiple class="form-control" id="clients" name="clients">
-                    {% for client in form.clients.field.queryset %}
-                    <option value="{{ client.id }}" {% if client.id in form.clients.value %}selected{% endif %}>{{ client.email }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Сохранить</button>
-        </form>
+{% block content %}
+<h1 class="mb-4">Форма рассылки</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="start_datetime">Дата и время начала</label>
+        <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" value="{{ form.start_datetime.value }}">
     </div>
-</body>
-
-</html>
+    <div class="form-group">
+        <label for="periodicity">Периодичность</label>
+        <select class="form-control" id="periodicity" name="periodicity">
+            {% for choice in form.periodicity.field.choices %}
+            <option value="{{ choice.0 }}" {% if choice.0 == form.periodicity.value %}selected{% endif %}>{{ choice.1 }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="status">Статус</label>
+        <select class="form-control" id="status" name="status">
+            {% for choice in form.status.field.choices %}
+            <option value="{{ choice.0 }}" {% if choice.0 == form.status.value %}selected{% endif %}>{{ choice.1 }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="message">Сообщение</label>
+        <select class="form-control" id="message" name="message">
+            {% for message in form.message.field.queryset %}
+            <option value="{{ message.id }}" {% if message.id == form.message.value %}selected{% endif %}>{{ message.subject }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="clients">Клиенты</label>
+        <select multiple class="form-control" id="clients" name="clients">
+            {% for client in form.clients.field.queryset %}
+            <option value="{{ client.id }}" {% if client.id in form.clients.value %}selected{% endif %}>{{ client.email }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

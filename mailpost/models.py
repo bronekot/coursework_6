@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -14,27 +15,41 @@ class Client(models.Model):
     email = models.EmailField()
     full_name = models.CharField(max_length=255)
     comment = models.TextField(blank=True, null=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="clients"
+    )
 
 
 class Message(models.Model):
     subject = models.CharField(max_length=255)
     body = models.TextField()
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="messages"
+    )
 
 
 class Mailing(models.Model):
     STATUS_CHOICES = [
-        ("created", "Created"),
-        ("started", "Started"),
-        ("completed", "Completed"),
+        ("created", "Создано"),
+        ("started", "Запущено"),
+        ("completed", "Выполнено"),
     ]
     start_datetime = models.DateTimeField()
     periodicity = models.CharField(
         max_length=50,
-        choices=[("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly")],
+        choices=[
+            ("every_5_minutes", "Каждые 5 минут"),
+            ("daily", "Ежедневно"),
+            ("weekly", "Еженедельно"),
+            ("monthly", "Ежемесячно"),
+        ],
     )
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
     clients = models.ManyToManyField(Client)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mailings"
+    )
 
 
 class MailingAttempt(models.Model):

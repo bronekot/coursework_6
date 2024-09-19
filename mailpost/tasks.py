@@ -1,10 +1,15 @@
 # tasks.py
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import Mailing, MailingAttempt
-from datetime import datetime, timedelta
-import pytz
+import logging
 import smtplib
+from datetime import datetime, timedelta
+
+import pytz
+from django.conf import settings
+from django.core.mail import send_mail
+
+from .models import Mailing, MailingAttempt
+
+logger = logging.getLogger(__name__)
 
 
 def send_mailing():
@@ -16,12 +21,12 @@ def send_mailing():
 
     for mailing in mailings:
         last_attempt = (
-            MailingAttempt.objects.filter(mailing=mailing)
-            .order_by("-attempt_datetime")
-            .first()
+            MailingAttempt.objects.filter(mailing=mailing).order_by("-attempt_datetime").first()
         )
         if last_attempt:
             time_diff = current_datetime - last_attempt.attempt_datetime
+            if mailing.periodicity == "every_5_minutes" and time_diff.total_seconds() < 300:
+                continue
             if mailing.periodicity == "daily" and time_diff.days < 1:
                 continue
             elif mailing.periodicity == "weekly" and time_diff.days < 7:
@@ -37,10 +42,10 @@ def send_mailing():
                 recipient_list=[client.email for client in mailing.clients.all()],
                 fail_silently=False,
             )
+            logger.info(f"Email sent successfully. Server response: {server_response}")
             MailingAttempt.objects.create(
                 mailing=mailing, status="success", server_response=server_response
             )
-        except smtplib.SMTPException as e:
-            MailingAttempt.objects.create(
-                mailing=mailing, status="failed", server_response=str(e)
-            )
+        except Exception as e:
+            logger.error(f"Failed to send email: {str(e)}")
+            MailingAttempt.objects.create(mailing=mailing, status="failed", server_response=str(e))
