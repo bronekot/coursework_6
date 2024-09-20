@@ -73,8 +73,6 @@ python manage.py test
 Если у вас есть вопросы или предложения, пожалуйста, создайте issue в этом репозитории.
 ```
 
-Этот README.md предоставляет краткое описание проекта, его основные функции, используемые технологии, инструкции по установке и запуску, а также базовую информацию об использовании сервиса. Вы можете дополнить его специфическими деталями вашего проекта или добавить дополнительные разделы по необходимости.`<pre><div class="mt-4">``<div class="language-markdown relative border border-gray-700" aria-label="highlighted-code-language-markdown"><div class="w-full overflow-x-auto">``<div><code>``<span class="token title">`#`<span class="token title">` Сервис email-рассылок `<span>`
-
 Это Django-приложение для управления email-рассылками, разработанное для эффективной коммуникации с клиентами.
 
 `<span><span class="token title">`##`<span class="token title">` Основные функции `<span>`
