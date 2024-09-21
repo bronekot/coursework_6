@@ -34,7 +34,11 @@ from .forms import (
     MessageForm,
 )
 from .models import Client, Mailing, Message
-from .permissions import IsManagerMixin, IsOwnerOrManagerMixin, VerifiedEmailRequiredMixin
+from .permissions import (
+    IsManagerMixin,
+    IsOwnerOrManagerMixin,
+    VerifiedEmailRequiredMixin,
+)
 
 User = get_user_model()
 
@@ -70,7 +74,8 @@ def register(request):
                     logger.warning(f"Failed to send verification email to {user.email}")
                     messages.warning(
                         request,
-                        "Аккаунт создан, но мы не смогли отправить письмо с подтверждением. Пожалуйста, не связывайтесь с поддержкой.",
+                        "Аккаунт создан, но мы не смогли отправить письмо с подтверждением.",
+                        "Пожалуйста, не связывайтесь с поддержкой.",
                     )
 
                 return redirect("login")
@@ -391,34 +396,6 @@ class MessageCreateView(LoginRequiredMixin, VerifiedEmailRequiredMixin, CreateVi
     form_class = MessageForm
     template_name = "message_form.html"
     success_url = reverse_lazy("message_list")
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user

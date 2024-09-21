@@ -1,7 +1,6 @@
 # tasks.py
 import logging
-import smtplib
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytz
 from django.conf import settings

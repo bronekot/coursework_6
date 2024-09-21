@@ -110,9 +110,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
-    {
-        "NAME": "django.contrib.auth.middleware.AuthenticationMiddleware",
-    },
 ]
 
 AUTH_USER_MODEL = "mailpost.CustomUser"
@@ -131,8 +128,6 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Europe/Moscow"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_BACKEND = "mailpost.custom_email_backend.CustomEmailBackend"
-# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"

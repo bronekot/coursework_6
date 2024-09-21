@@ -1,5 +1,3 @@
-import socket
-
 from django.core.mail.backends.smtp import EmailBackend
 
 

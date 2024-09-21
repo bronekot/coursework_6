@@ -14,7 +14,8 @@ class VerifiedEmailRequiredMixin(UserPassesTestMixin):
     def handle_no_permission(self):
         messages.warning(
             self.request,
-            "Для выполнения этого действия необходимо подтвердить email. Пожалуйста, проверьте свою почту и подтвердите email.",
+            "Для выполнения этого действия необходимо подтвердить email. "
+            "Пожалуйста, проверьте свою почту и подтвердите email.",
         )
         return redirect("home")
 
