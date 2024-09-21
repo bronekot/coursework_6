@@ -13,7 +13,8 @@ def verified_email_required(view_func):
             else:
                 messages.warning(
                     request,
-                    "Для выполнения этого действия необходимо подтвердить email. Пожалуйста, проверьте свою почту и подтвердите email.",
+                    "Для выполнения этого действия необходимо подтвердить email. "
+                    "Пожалуйста, проверьте свою почту и подтвердите email.",
                 )
                 return redirect("home")  # или другая подходящая страница
         return redirect("login")

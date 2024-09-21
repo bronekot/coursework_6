@@ -2,13 +2,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
-from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from blog.models import BlogPost
 from mailpost.models import Client as MailClient
 from mailpost.models import Mailing, MailingAttempt, Message
 
